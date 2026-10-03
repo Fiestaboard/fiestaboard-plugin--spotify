@@ -10,7 +10,7 @@ Show what's playing on your Spotify account: the track, artist, progress, device
 
 The Spotify plugin reads your Spotify playback through the Spotify Web API and turns it into board-ready variables: the track or podcast episode, a time line like `1:23 / 3:45`, a progress bar as wide as your board, the playlist or album it's playing from, the device, and the next tracks in your queue. When nothing is playing it can show the last track you played.
 
-You sign in once with FiestaBoard's **Connect** button, using a Spotify app that you create for yourself. FiestaBoard keeps the sign-in fresh; there is no password or client secret to enter. Requires a FiestaBoard version with account connection (see [Connecting Accounts](https://fiestaboard.app/docs/features/connecting-accounts)).
+You sign in once with FiestaBoard's **Sign in with Spotify** button, using a free Spotify app that you create for yourself (Spotify limits any one app to a handful of accounts, so each person brings their own; the plugin's settings walk you through it). FiestaBoard keeps the sign-in fresh; there is no password or client secret to enter. Requires a FiestaBoard version with account connection (see [Connecting Accounts](https://fiestaboard.app/docs/features/connecting-accounts)).
 
 ## Template Variables
 
@@ -115,12 +115,13 @@ UP NEXT
 | Setting | Type | Required | Default | Description |
 |---------|------|----------|---------|-------------|
 | `enabled` | boolean | No | `false` | Turn the plugin on |
+| `client_id` | string | To sign in | | Client ID of your own app in the Spotify Developer Dashboard. Entered in the **Account connection** section |
 | `show_last_played` | boolean | No | `true` | When nothing is playing, show the last track played |
 | `show_queue` | boolean | No | `true` | Fetch your queue for the Up Next variables |
 | `tidy_titles` | boolean | No | `true` | Drop `- Remastered 2011` and `(feat. ...)` from track titles |
 | `refresh_seconds` | integer | No | `15` | How often to ask Spotify what's playing (10-300) |
 
-The sign-in itself is not a setting: press **Sign in with Spotify** in the plugin's **Account connection** section. The manifest's `oauth` block declares Spotify's authorization and token endpoints with the relay flow (authorization code with PKCE, no client secret), FiestaBoard's own Spotify app as `client_id` (a client ID is not a secret; there is no settings field, so users cannot replace it), and these read-only scopes:
+The sign-in itself is not a setting: press **Sign in with Spotify** in the plugin's **Account connection** section. The manifest's `oauth` block declares Spotify's authorization and token endpoints with the relay flow (authorization code with PKCE, no client secret) and these read-only scopes:
 
 | Scope | Used for |
 |-------|----------|
@@ -128,9 +129,7 @@ The sign-in itself is not a setting: press **Sign in with Spotify** in the plugi
 | `user-read-currently-playing` | `GET /me/player/queue` (Spotify requires both scopes for it) |
 | `user-read-recently-played` | `GET /me/player/recently-played` (the last played track) |
 
-No environment variables.
-
-FiestaBoard's Spotify app is in Spotify's Development Mode, so only Spotify accounts its owner has added (up to five) can use it. Spotify's wider "extended quota" mode is limited to registered businesses with at least 250,000 monthly users.
+No environment variables: the client ID lives in the plugin settings because the platform reads it from there.
 
 ## Features
 
@@ -143,7 +142,7 @@ FiestaBoard's Spotify app is in Spotify's Development Mode, so only Spotify acco
 - Removes remaster and featuring notes from titles so more of the title fits
 - One request to Spotify serves every board: a Flagship and a Note showing the same plugin share it
 - Respects Spotify's `Retry-After` on rate limits and backs off after outages, timeouts and rejected sign-ins instead of retrying on every render. During a short outage the board keeps the last data (up to two minutes old)
-- Error messages say what to do: sign in, reconnect after a `401`, and explain a `403` from an account that hasn't been added to the app yet
+- Error messages say what to do: sign in, reconnect after a `401`, add yourself under **User Management** after a `403`
 - Works on every board shape: Flagship, Note, and Note arrays
 
 ## Author

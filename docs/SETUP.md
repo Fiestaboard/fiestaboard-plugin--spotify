@@ -13,13 +13,12 @@ Connect FiestaBoard to your Spotify account to show what's playing, how far thro
 
 **Prerequisites:**
 
-- A Spotify account that has been added to FiestaBoard's Spotify app (see below).
-- A FiestaBoard version that can connect accounts (the plugin's settings have an **Account connection** section).
+- A **Spotify Premium** account. Spotify requires the owner of a developer app to have Premium, and the app stops working without it.
+- About 5 minutes, once, to create your own free app in the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard). Spotify limits any one app to a handful of accounts, so each person uses their own; FiestaBoard walks you through it.
+- FiestaBoard 9.5.0 or later (the plugin's settings have an **Account connection** section).
 - Open FiestaBoard by its local address, such as `http://192.168.1.50:4420`, when you sign in.
 
 FiestaBoard only reads your playback. It can't play, pause, skip, or change anything in your account.
-
-> **Spotify accounts are added by hand for now.** FiestaBoard's Spotify app is in Spotify's *Development Mode*. Spotify only lets accounts that the app's owner has added by email sign in to an app in that mode, up to five of them, and it does not offer a wider mode to open-source projects. If your account hasn't been added, signing in appears to work but the plugin then shows "Spotify refused access (403)".
 
 ## Quick Setup
 
@@ -29,16 +28,31 @@ In the FiestaBoard web UI:
 
 1. Go to **Integrations**
 2. Find **Spotify** and toggle it **On**
+3. Click **Configure**. The **Account connection** section at the top lists the steps below and has everything you need to copy.
 
-### 2. Sign in to Spotify
+### 2. Create a Spotify app
 
-1. Click **Configure**
-2. In **Account connection** at the top of the settings, press **Sign in with Spotify**
-3. Spotify asks you to sign in and agree to let FiestaBoard see what you're playing and what you've played recently. Press **Agree**
+1. Go to the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard) and log in with your Spotify account. Accept the developer terms if this is your first visit.
+2. Press **Create app** and fill in:
+   - **App name:** anything, such as `FiestaBoard`
+   - **App description:** anything, such as `Now playing on my split-flap board`
+   - **Website:** leave empty
+   - **Redirect URIs:** paste the redirect URI from the plugin's **Account connection** section (use its copy button), then press **Add**. It looks like `https://fiestaboard.app/auth/oauth/redirect`. Spotify compares this address exactly, so copy the one your board shows; FiestaBoard 9.5 through 9.7 show it with `.html` on the end.
+   - **Which API/SDKs are you planning to use?** tick **Web API** only
+3. Tick the box to agree to Spotify's Developer Terms of Service and Design Guidelines, then press **Save**.
+4. On the app's page, open **Settings** and copy the **Client ID** (32 letters and numbers). You don't need the client secret: FiestaBoard signs in without one.
+
+Spotify lets each developer account have a limited number of apps in Development Mode. If you already have one, you can use it: open its **Settings**, press **Edit**, add the redirect URI under **Redirect URIs**, make sure **Web API** is ticked, and **Save**.
+
+**Using a different Spotify account than the one that owns the app?** New apps are in *Development Mode*, which only lets the owner and up to 5 listed users sign in. Open the app, go to **Settings** > **User Management**, and add the other account's name and the email address it signs in to Spotify with. Without this, Spotify answers `403` and the plugin tells you so.
+
+### 3. Sign in
+
+1. Back in the plugin's **Account connection** section, paste the **Client ID**
+2. Press **Sign in with Spotify**. It saves the Client ID and takes you to Spotify. (On FiestaBoard 9.5 through 9.7 the Client ID field is under **Settings**: paste it there, click **Save Changes**, reopen the settings, and press **Connect to Spotify**.)
+3. Spotify asks you to agree to let your app see what you're playing and what you've played recently. Press **Agree**
 4. On the way back you pass through `fiestaboard.app`. The first time, it shows your board's address and asks you to confirm it: check that it's the address you use for FiestaBoard and press **Continue to my board**
 5. You land back on **Integrations** with Spotify connected
-
-There is nothing to copy or paste: the plugin brings its own Spotify app.
 
 Optional settings:
 
@@ -49,7 +63,7 @@ Optional settings:
 
 More about what you see while connecting: [Connecting Accounts](https://fiestaboard.app/docs/features/connecting-accounts).
 
-### 3. Create a Board Template
+### 4. Create a Board Template
 
 Create a page from the plugin's demo, or add variables to your own page. Center-align the lines:
 
@@ -70,7 +84,7 @@ On a Note, try:
 {{spotify.state_tile}} {{spotify.time_line}}
 ```
 
-### 4. View on Your Board
+### 5. View on Your Board
 
 Play something on Spotify on any device. The board updates on the next refresh (every 15 seconds by default). Progress and time are as of that refresh.
 
@@ -114,6 +128,7 @@ Play something on Spotify on any device. The board updates on the next refresh (
 
 | Setting | Required | Default | Description |
 |---------|----------|---------|-------------|
+| Client ID | To sign in | | From your app's **Settings** page in the Spotify Developer Dashboard. Entered in **Account connection** |
 | Show Last Played | No | On | Show the last played track when nothing is playing |
 | Show Up Next | No | On | Fetch your queue (one extra request when the track changes) |
 | Tidy Track Titles | No | On | Drop remaster and featuring notes from track titles |
@@ -121,22 +136,27 @@ Play something on Spotify on any device. The board updates on the next refresh (
 
 The connection itself is made with the **Sign in with Spotify** button, not a setting. The plugin asks Spotify for three read-only permissions: `user-read-playback-state`, `user-read-currently-playing` and `user-read-recently-played`.
 
-**Environment variables:** none.
+**Environment variables:** none. The Client ID is entered in the plugin's settings.
 
 ## Troubleshooting
 
-**"Not connected to Spotify"**
+**"Not signed in to Spotify"**
 
-- Press **Sign in with Spotify** (or **Reconnect**) in the plugin's **Account connection** section.
+- Press **Sign in with Spotify** (or **Reconnect**) in the plugin's **Account connection** section. If the button is greyed out, paste your Client ID first.
 - **Reconnect needed** means Spotify stopped accepting the saved sign-in, usually because you removed the app's access in your Spotify account or changed your password.
+
+**Spotify shows "INVALID_CLIENT: Invalid redirect URI"**
+
+- The app's redirect URI must be exactly the one shown in the plugin's **Account connection** section, with no trailing slash and no spaces. Copy it again, fix it in the Spotify app's **Settings**, **Save**, and sign in again. If you updated FiestaBoard from 9.5 through 9.7, the address changed (it no longer ends in `.html`): add the new one to your Spotify app.
+
+**Spotify shows "INVALID_CLIENT: Invalid client"** or **"The provider rejected the sign-in"**
+
+- The Client ID doesn't match your app. Copy it again from the app's **Settings** page. Don't paste the client secret.
 
 **"Spotify refused access (403)"**
 
-- Your Spotify account hasn't been added to FiestaBoard's Spotify app yet. See the note at the top of this guide.
-
-**Spotify shows "INVALID_CLIENT"** or **"The provider rejected the sign-in"**
-
-- Something is wrong on FiestaBoard's side of the Spotify app, not yours. Please [open an issue](https://github.com/Fiestaboard/fiestaboard-plugin--spotify/issues).
+- The Spotify account you connected isn't allowed to use the app. Add it under **Settings** > **User Management** in the Developer Dashboard, or connect with the account that owns the app.
+- The app's owner needs Spotify Premium. If the Premium subscription lapsed, Spotify blocks the app.
 
 **"Spotify rejected the sign-in (401)"** or **"Reconnect needed"**
 
@@ -144,7 +164,7 @@ The connection itself is made with the **Sign in with Spotify** button, not a se
 
 **"Spotify rate limit reached"**
 
-- The plugin waits as long as Spotify asks before trying again and keeps showing the last track meanwhile (for up to two minutes). If it happens often, raise the refresh interval or turn off **Show Up Next**. Spotify counts requests from every board using FiestaBoard's Spotify app together.
+- The plugin waits as long as Spotify asks before trying again and keeps showing the last track meanwhile (for up to two minutes). If it happens often, raise the refresh interval or turn off **Show Up Next**. Other apps using the same Client ID count toward the same limit.
 
 **The board shows LAST PLAYED although music is playing**
 

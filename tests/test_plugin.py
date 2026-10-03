@@ -1,6 +1,5 @@
 """Tests for what the Spotify plugin shows."""
 
-import re
 from datetime import datetime
 from unittest.mock import patch
 
@@ -16,6 +15,7 @@ from src.devices import BoardContext
 from src.plugins.geometry_conformance import assert_board_conformance, note_array
 from src.text_to_board import count_tiles
 
+from .conftest import TEST_CLIENT_ID
 from .fixtures import JUNE_ARCADE, PAPER_LANTERNS, episode, player_state, track
 
 FLAGSHIP = BoardContext.from_device_type("flagship")
@@ -73,11 +73,13 @@ class TestManifest:
         assert "client_secret" not in block and "client_secret_setting" not in block
         provider = parse_provider_block(block, "Spotify")
         assert provider.flows == ("relay",)
-        # FiestaBoard's own Spotify app. Users get a sign-in button, not a field.
-        assert re.fullmatch(r"[0-9a-f]{32}", provider.client_id)
-        assert provider.client_id_setting not in manifest_data["settings_schema"]["properties"]
-        assert "client_id" not in manifest_data["settings_schema"]["properties"]
-        assert not manifest_data["settings_schema"].get("required")
+        # Spotify admits only five hand-added accounts to a shared app, so each
+        # user brings their own: no client ID ships, and there is a field for theirs.
+        assert provider.client_id == ""
+        assert provider.client_id_setting in manifest_data["settings_schema"]["properties"]
+        # Not "required": FiestaBoard asks for it in the Account connection
+        # panel, and other settings must be savable before the app exists.
+        assert "client_id" not in manifest_data["settings_schema"].get("required", [])
 
     def test_scopes_are_the_least_the_endpoints_need(self, manifest_data):
         assert sorted(manifest_data["oauth"]["scopes"]) == [
@@ -560,14 +562,23 @@ class TestDisplay:
 
 class TestConfig:
     def test_valid_config(self, plugin):
-        assert plugin.validate_config({"refresh_seconds": 15}) == []
+        assert plugin.validate_config({"client_id": TEST_CLIENT_ID, "refresh_seconds": 15}) == []
 
-    def test_nothing_needs_to_be_entered(self, plugin):
-        """The plugin brings its own Spotify app; the user only signs in."""
+    def test_other_settings_can_be_saved_before_there_is_a_client_id(self, plugin):
+        """The Spotify app may not exist yet; the plugin just reports not signed in."""
         assert plugin.validate_config({}) == []
+        assert plugin.validate_config({"client_id": "  ", "show_queue": False}) == []
+
+    @pytest.mark.parametrize("bad", ["abc", "your-client-id-here", TEST_CLIENT_ID + "0"])
+    def test_client_id_shape(self, plugin, bad):
+        errors = plugin.validate_config({"client_id": bad})
+        assert errors == ["Client ID should be the 32-character code from your Spotify app's Settings page"]
+
+    def test_client_id_whitespace_is_ignored(self, plugin):
+        assert plugin.validate_config({"client_id": f"  {TEST_CLIENT_ID} "}) == []
 
     def test_refresh_below_minimum(self, plugin):
-        errors = plugin.validate_config({"refresh_seconds": 2})
+        errors = plugin.validate_config({"client_id": TEST_CLIENT_ID, "refresh_seconds": 2})
         assert len(errors) == 1 and "refresh" in errors[0].lower()
 
     def test_default_refresh_interval(self, plugin):

@@ -1,8 +1,8 @@
 {
   "id": "spotify",
   "name": "Spotify",
-  "version": "1.1.0",
-  "description": "Show what's playing on Spotify: track, artist, progress, device and what's up next. Signs in to your own Spotify account.",
+  "version": "1.2.0",
+  "description": "Show what's playing on Spotify: track, artist, progress, device and what's up next. Signs in to your Spotify account through your own free Spotify app.",
   "author": "FiestaBoard Team",
   "repository": "https://github.com/Fiestaboard/fiestaboard-plugin--spotify",
   "documentation": "README.md",
@@ -22,7 +22,7 @@
       "user-read-currently-playing",
       "user-read-recently-played"
     ],
-    "client_id": "9218af1398d144b99411db593eae4332"
+    "client_id_setting": "client_id"
   },
   "settings_schema": {
     "type": "object",
@@ -31,6 +31,11 @@
         "type": "boolean",
         "title": "Enable Spotify",
         "default": false
+      },
+      "client_id": {
+        "type": "string",
+        "title": "Client ID",
+        "description": "The Client ID of your own Spotify app. Create the app at developer.spotify.com/dashboard, give it the redirect URI shown in Account connection, then copy its Client ID from the app's Settings page."
       },
       "show_last_played": {
         "type": "boolean",

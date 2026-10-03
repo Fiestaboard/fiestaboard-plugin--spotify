@@ -104,12 +104,12 @@ class TestFailures:
         clock.advance(1)
         assert fetch(plugin).available is True
 
-    def test_403_explains_the_account_has_not_been_added(self, plugin, spotify_api):
+    def test_403_explains_the_development_mode_allowlist(self, plugin, spotify_api):
         spotify_api.fail("/me/player", status=403)
         result = fetch(plugin)
         assert result.available is False
         assert result.error == FORBIDDEN_ERROR
-        assert "hasn't been" in result.error and "setup guide" in result.error
+        assert "User Management" in result.error
 
     def test_403_is_not_shown_as_stale_data(self, plugin, spotify_api, clock):
         fetch(plugin)
