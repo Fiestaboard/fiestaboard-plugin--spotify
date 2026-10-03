@@ -62,7 +62,7 @@ Times are as of the last refresh (every 15 seconds by default); the board does n
 | `{{spotify.context_type}}` | `PLAYLIST`, `ALBUM`, `ARTIST`, `PODCAST` or `LIKED SONGS` | `PLAYLIST` |
 | `{{spotify.context_name}}` | Name of that playlist, album, artist or podcast | `SUNDAY COFFEE` |
 
-Spotify does not share the names of its own editorial and personalised playlists (such as Discover Weekly) with apps, so `context_name` is empty for those.
+Spotify does not share the names of its own editorial and personalized playlists (such as Discover Weekly) with apps, so `context_name` is empty for those.
 
 ### Up Next
 
@@ -76,7 +76,7 @@ Spotify does not share the names of its own editorial and personalised playlists
 | `{{spotify.queue.0.artist}}` | Artist of queue entry 0-4 | `JUNE ARCADE` |
 | `{{spotify.queue.0.line}}` | Title and artist of queue entry 0-4 | `LOW TIDE - JUNE ARCADE` |
 
-All text is uppercased, accents are folded (`BEYONCE`), and characters the board can't show are dropped.
+All text is in capitals, accents are folded (`BEYONCE`), and characters the board can't show are dropped.
 
 ## Example Templates
 
