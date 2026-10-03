@@ -23,12 +23,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: Fiestaboard/FiestaBoard
-          # TODO: pinned to the platform OAuth branch because get_oauth_token()
-          # and the manifest `oauth` block only exist there until
-          # Fiestaboard/FiestaBoard#2093 is merged and released. Once it is,
-          # change this to the first release tag that includes #2093 and make
-          # fiestaboard_version in manifest.json match that release.
-          ref: feat-oauth-relay
+          # Pinned to the first release with platform OAuth
+          # (get_oauth_token() and the manifest `oauth` block,
+          # Fiestaboard/FiestaBoard#2093). Keep it equal to
+          # fiestaboard_version in manifest.json; raise both together.
+          ref: v9.5.0
           path: fiestaboard-core
 
       - uses: actions/setup-python@v5
