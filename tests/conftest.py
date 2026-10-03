@@ -24,7 +24,6 @@ from .fixtures import player_state, playlist, queue_response, recently_played
 
 MANIFEST_PATH = Path(__file__).parent.parent / "manifest.json"
 API = "https://api.spotify.com/v1"
-TEST_CLIENT_ID = "0123456789abcdef0123456789abcdef"  # fake, 32 hex characters
 TEST_TOKEN = "test_access_token"
 
 
@@ -133,7 +132,7 @@ def token():
 def make_plugin(manifest_data, token):
     def factory(**config):
         p = SpotifyPlugin(manifest_data)
-        p.config = {"enabled": True, "client_id": TEST_CLIENT_ID, **config}
+        p.config = {"enabled": True, **config}
         p.get_oauth_token = lambda: token.value
         return p
 

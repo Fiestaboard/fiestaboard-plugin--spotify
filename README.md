@@ -115,13 +115,12 @@ UP NEXT
 | Setting | Type | Required | Default | Description |
 |---------|------|----------|---------|-------------|
 | `enabled` | boolean | No | `false` | Turn the plugin on |
-| `client_id` | string | Yes | | Client ID of your own app in the Spotify Developer Dashboard |
 | `show_last_played` | boolean | No | `true` | When nothing is playing, show the last track played |
 | `show_queue` | boolean | No | `true` | Fetch your queue for the Up Next variables |
 | `tidy_titles` | boolean | No | `true` | Drop `- Remastered 2011` and `(feat. ...)` from track titles |
 | `refresh_seconds` | integer | No | `15` | How often to ask Spotify what's playing (10-300) |
 
-The sign-in itself is not a setting: press **Connect** in the plugin's **Account connection** section. The manifest's `oauth` block declares Spotify's authorization and token endpoints with the relay flow (authorization code with PKCE, no client secret) and these read-only scopes:
+The sign-in itself is not a setting: press **Sign in with Spotify** in the plugin's **Account connection** section. The manifest's `oauth` block declares Spotify's authorization and token endpoints with the relay flow (authorization code with PKCE, no client secret), FiestaBoard's own Spotify app as `client_id` (a client ID is not a secret; there is no settings field, so users cannot replace it), and these read-only scopes:
 
 | Scope | Used for |
 |-------|----------|
@@ -129,7 +128,9 @@ The sign-in itself is not a setting: press **Connect** in the plugin's **Account
 | `user-read-currently-playing` | `GET /me/player/queue` (Spotify requires both scopes for it) |
 | `user-read-recently-played` | `GET /me/player/recently-played` (the last played track) |
 
-No environment variables: the client ID lives in the plugin settings because the platform reads it from there.
+No environment variables.
+
+FiestaBoard's Spotify app is in Spotify's Development Mode, so only Spotify accounts its owner has added (up to five) can use it. Spotify's wider "extended quota" mode is limited to registered businesses with at least 250,000 monthly users.
 
 ## Features
 
@@ -142,7 +143,7 @@ No environment variables: the client ID lives in the plugin settings because the
 - Removes remaster and featuring notes from titles so more of the title fits
 - One request to Spotify serves every board: a Flagship and a Note showing the same plugin share it
 - Respects Spotify's `Retry-After` on rate limits and backs off after outages, timeouts and rejected sign-ins instead of retrying on every render. During a short outage the board keeps the last data (up to two minutes old)
-- Error messages say what to do: connect, reconnect after a `401`, add yourself under **User Management** after a `403`
+- Error messages say what to do: sign in, reconnect after a `401`, and explain a `403` from an account that hasn't been added to the app yet
 - Works on every board shape: Flagship, Note, and Note arrays
 
 ## Author

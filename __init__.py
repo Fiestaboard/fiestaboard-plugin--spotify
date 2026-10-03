@@ -73,12 +73,13 @@ BAR_EMPTY = "-"
 NOT_CONNECTED_ERROR = "Not connected to Spotify. Open this plugin's settings and connect your account."
 PLATFORM_TOO_OLD_ERROR = "This FiestaBoard version cannot sign in to Spotify. Update FiestaBoard to use this plugin."
 UNAUTHORIZED_ERROR = "Spotify rejected the sign-in (401). Open this plugin's settings and press Reconnect."
+# FiestaBoard's Spotify app is in Spotify's Development Mode, which only lets
+# accounts on the app's user list sign in. Anyone else gets a 403 from every
+# Web API call, even though the sign-in itself appeared to work.
 FORBIDDEN_ERROR = (
-    "Spotify refused access (403). In the Spotify Developer Dashboard, add your Spotify account "
-    "under User Management, and check the app owner has Spotify Premium."
+    "Spotify refused access (403). FiestaBoard's Spotify app only works for Spotify accounts "
+    "that have been added to it, and yours hasn't been yet. See the plugin's setup guide."
 )
-
-CLIENT_ID_RE = re.compile(r"^[0-9a-fA-F]{32}$")
 
 # Clutter that eats a 22-column row without telling you anything new.
 _TIDY_PATTERNS = (
@@ -238,13 +239,6 @@ class SpotifyPlugin(PluginBase):
 
     def validate_config(self, config: Dict[str, Any]) -> List[str]:
         errors: List[str] = []
-        client_id = str(config.get("client_id") or "").strip()
-        if not client_id:
-            errors.append(
-                "Client ID is required: create an app in the Spotify Developer Dashboard and copy its Client ID"
-            )
-        elif not CLIENT_ID_RE.match(client_id):
-            errors.append("Client ID should be the 32-character code from your Spotify app's Settings page")
         errors.extend(self._validate_refresh_seconds(config))
         return errors
 
