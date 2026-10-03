@@ -1,0 +1,433 @@
+{
+  "id": "spotify",
+  "name": "Spotify",
+  "version": "1.0.0",
+  "description": "Show what's playing on Spotify: track, artist, progress, device and what's up next. Signs in to your own Spotify account.",
+  "author": "FiestaBoard Team",
+  "repository": "https://github.com/Fiestaboard/fiestaboard-plugin--spotify",
+  "documentation": "README.md",
+  "icon": "music",
+  "category": "entertainment",
+  "fiestaboard_version": ">=9.5.0",
+  "min_refresh_seconds": 10,
+  "oauth": {
+    "provider_name": "Spotify",
+    "flows": [
+      "relay"
+    ],
+    "authorization_url": "https://accounts.spotify.com/authorize",
+    "token_url": "https://accounts.spotify.com/api/token",
+    "scopes": [
+      "user-read-playback-state",
+      "user-read-currently-playing",
+      "user-read-recently-played"
+    ],
+    "client_id_setting": "client_id"
+  },
+  "settings_schema": {
+    "type": "object",
+    "properties": {
+      "enabled": {
+        "type": "boolean",
+        "title": "Enable Spotify",
+        "default": false
+      },
+      "client_id": {
+        "type": "string",
+        "title": "Client ID",
+        "description": "From your own app in the Spotify Developer Dashboard (open the app, then Settings). Set the app's redirect URI to https://fiestaboard.app/auth/oauth/redirect.html. Save, then press Connect."
+      },
+      "show_last_played": {
+        "type": "boolean",
+        "title": "Show Last Played",
+        "description": "When nothing is playing, show the last track you played (headline LAST PLAYED) instead of an empty board.",
+        "default": true
+      },
+      "show_queue": {
+        "type": "boolean",
+        "title": "Show Up Next",
+        "description": "Ask Spotify for your queue so the next tracks can be shown. Costs one extra request each time the track changes.",
+        "default": true
+      },
+      "tidy_titles": {
+        "type": "boolean",
+        "title": "Tidy Track Titles",
+        "description": "Drop notes like '- Remastered 2011' and '(feat. ...)' from track titles so they fit the board. Featured artists still appear in the artist line.",
+        "default": true
+      },
+      "refresh_seconds": {
+        "type": "integer",
+        "title": "Refresh Interval (seconds)",
+        "description": "How often to ask Spotify what's playing. Lower is closer to real time; the progress shown is as of the last check.",
+        "default": 15,
+        "minimum": 10,
+        "maximum": 300
+      }
+    },
+    "required": [
+      "client_id"
+    ]
+  },
+  "variables": {
+    "groups": {
+      "now_playing": {
+        "label": "Now Playing"
+      },
+      "playback": {
+        "label": "Playback"
+      },
+      "device": {
+        "label": "Device"
+      },
+      "context": {
+        "label": "Playing From"
+      },
+      "up_next": {
+        "label": "Up Next"
+      }
+    },
+    "simple": {
+      "headline": {
+        "description": "NOW PLAYING, PAUSED, LAST PLAYED, AD BREAK or NOTHING PLAYING",
+        "type": "string",
+        "max_length": 15,
+        "group": "now_playing",
+        "example": "NOW PLAYING"
+      },
+      "title": {
+        "description": "Track or podcast episode title (the last played track when nothing is playing)",
+        "type": "string",
+        "max_length": 22,
+        "group": "now_playing",
+        "example": "NEON HARBOR"
+      },
+      "artist": {
+        "description": "Artists, comma-separated; the show name for a podcast episode",
+        "type": "string",
+        "max_length": 22,
+        "group": "now_playing",
+        "example": "PAPER LANTERNS"
+      },
+      "album": {
+        "description": "Album name; the publisher for a podcast episode",
+        "type": "string",
+        "max_length": 22,
+        "group": "now_playing",
+        "example": "MIDNIGHT FERRY"
+      },
+      "title_artist": {
+        "description": "Title and artist on one line",
+        "type": "string",
+        "max_length": 22,
+        "group": "now_playing",
+        "example": "NEON HARBOR - PAPER LANTERNS"
+      },
+      "item_type": {
+        "description": "TRACK, EPISODE or AD (empty when nothing is playing)",
+        "type": "string",
+        "max_length": 7,
+        "group": "now_playing",
+        "example": "TRACK"
+      },
+      "last_played_ago": {
+        "description": "When the last played track finished, if nothing is playing now",
+        "type": "string",
+        "max_length": 8,
+        "group": "now_playing",
+        "example": "12M AGO"
+      },
+      "is_playing": {
+        "description": "Whether something is playing right now (not paused)",
+        "type": "boolean",
+        "group": "playback",
+        "example": "true"
+      },
+      "state": {
+        "description": "PLAYING, PAUSED or STOPPED",
+        "type": "string",
+        "max_length": 7,
+        "group": "playback",
+        "example": "PLAYING"
+      },
+      "state_tile": {
+        "description": "One colour tile: green playing, yellow paused, red stopped",
+        "type": "string",
+        "max_length": 1,
+        "group": "playback",
+        "example": "{66}"
+      },
+      "progress": {
+        "description": "Position in the track",
+        "type": "string",
+        "max_length": 7,
+        "group": "playback",
+        "example": "1:23"
+      },
+      "duration": {
+        "description": "Length of the track",
+        "type": "string",
+        "max_length": 7,
+        "group": "playback",
+        "example": "3:45"
+      },
+      "time_line": {
+        "description": "Position and length together",
+        "type": "string",
+        "max_length": 15,
+        "group": "playback",
+        "example": "1:23 / 3:45"
+      },
+      "remaining": {
+        "description": "Time left in the track",
+        "type": "string",
+        "max_length": 8,
+        "group": "playback",
+        "example": "-2:22"
+      },
+      "progress_percent": {
+        "description": "How far through the track, 0-100",
+        "type": "number",
+        "max_length": 3,
+        "group": "playback",
+        "example": "37"
+      },
+      "progress_bar": {
+        "description": "Progress bar as wide as the board: green tiles played, dashes to go",
+        "type": "string",
+        "group": "playback",
+        "example": "{66}{66}{66}{66}{66}{66}{66}{66}--------------"
+      },
+      "progress_ms": {
+        "description": "Position in milliseconds",
+        "type": "number",
+        "group": "playback",
+        "example": "83000"
+      },
+      "duration_ms": {
+        "description": "Length in milliseconds",
+        "type": "number",
+        "group": "playback",
+        "example": "225000"
+      },
+      "device_name": {
+        "description": "The Spotify Connect device playing",
+        "type": "string",
+        "max_length": 22,
+        "group": "device",
+        "example": "KITCHEN SPEAKER"
+      },
+      "device_type": {
+        "description": "Kind of device, such as COMPUTER, SMARTPHONE or SPEAKER",
+        "type": "string",
+        "max_length": 12,
+        "group": "device",
+        "example": "SPEAKER"
+      },
+      "volume_percent": {
+        "description": "Device volume, 0-100 (empty if the device has none)",
+        "type": "number",
+        "max_length": 3,
+        "group": "device",
+        "example": "65"
+      },
+      "shuffle": {
+        "description": "Whether shuffle is on",
+        "type": "boolean",
+        "group": "device",
+        "example": "false"
+      },
+      "repeat": {
+        "description": "Repeat mode: OFF, ALL or ONE",
+        "type": "string",
+        "max_length": 3,
+        "group": "device",
+        "example": "ALL"
+      },
+      "modes": {
+        "description": "Shuffle and repeat together, empty when both are off",
+        "type": "string",
+        "max_length": 18,
+        "group": "device",
+        "example": "SHUFFLE REPEAT ALL"
+      },
+      "context_type": {
+        "description": "Where it is playing from: PLAYLIST, ALBUM, ARTIST, PODCAST or LIKED SONGS",
+        "type": "string",
+        "max_length": 11,
+        "group": "context",
+        "example": "PLAYLIST"
+      },
+      "context_name": {
+        "description": "Name of that playlist, album, artist or podcast (empty when Spotify does not share it)",
+        "type": "string",
+        "max_length": 22,
+        "group": "context",
+        "example": "SUNDAY COFFEE"
+      },
+      "next_title": {
+        "description": "Next track in your queue",
+        "type": "string",
+        "max_length": 22,
+        "group": "up_next",
+        "example": "LOW TIDE"
+      },
+      "next_artist": {
+        "description": "Artist of the next track",
+        "type": "string",
+        "max_length": 22,
+        "group": "up_next",
+        "example": "JUNE ARCADE"
+      },
+      "next_line": {
+        "description": "Next track and artist on one line",
+        "type": "string",
+        "max_length": 22,
+        "group": "up_next",
+        "example": "LOW TIDE - JUNE ARCADE"
+      },
+      "queue_count": {
+        "description": "How many upcoming tracks are in queue (up to 5)",
+        "type": "number",
+        "max_length": 1,
+        "group": "up_next",
+        "example": "5"
+      }
+    },
+    "arrays": {
+      "queue": {
+        "label_field": "title",
+        "item_fields": {
+          "title": {
+            "description": "Track title",
+            "max_length": 22,
+            "group": "up_next"
+          },
+          "artist": {
+            "description": "Artist",
+            "max_length": 22,
+            "group": "up_next"
+          },
+          "line": {
+            "description": "Title and artist on one line",
+            "max_length": 22,
+            "group": "up_next"
+          }
+        }
+      }
+    }
+  },
+  "teaser": "{66} NEON HARBOR",
+  "previews": [
+    {
+      "device_type": "flagship",
+      "rows": [
+        "    {66} NOW PLAYING",
+        "     NEON HARBOR",
+        "    PAPER LANTERNS",
+        "    MIDNIGHT FERRY",
+        "     1:23 / 3:45",
+        "{66}{66}{66}{66}{66}{66}{66}{66}--------------"
+      ]
+    },
+    {
+      "device_type": "note",
+      "rows": [
+        "NEON HARBOR",
+        "PAPER LANTERNS",
+        "{66} 1:23 / 3:45"
+      ]
+    },
+    {
+      "label": "Up next",
+      "device_type": "flagship",
+      "rows": [
+        "    {66} NEON HARBOR",
+        "    PAPER LANTERNS",
+        "     1:23 / 3:45",
+        "",
+        "       UP NEXT",
+        "LOW TIDE - JUNE ARCADE"
+      ]
+    },
+    {
+      "label": "Note Array (2 wide)",
+      "device_type": "note_array",
+      "notes_wide": 2,
+      "notes_tall": 1,
+      "rows": [
+        " NEON HARBOR - PAPER LANTERNS",
+        "        MIDNIGHT FERRY",
+        "{66}{66}{66}{66}{66}{66}{66}{66}{66}{66}{66}-------------------"
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "docs/board-display.png",
+      "alt": "Spotify now playing on a FiestaBoard: track, artist, album, time and a progress bar",
+      "caption": "The default template while a track plays",
+      "primary": true
+    }
+  ],
+  "demo": {
+    "flagship": {
+      "name": "Spotify Demo",
+      "template": [
+        "{{spotify.state_tile}} {{spotify.headline}}",
+        "{{spotify.title}}",
+        "{{spotify.artist}}",
+        "{{spotify.album}}",
+        "{{spotify.time_line}}",
+        "{{spotify.progress_bar}}"
+      ],
+      "line_metadata": [
+        {
+          "alignment": "center",
+          "wrap": false
+        },
+        {
+          "alignment": "center",
+          "wrap": false
+        },
+        {
+          "alignment": "center",
+          "wrap": false
+        },
+        {
+          "alignment": "center",
+          "wrap": false
+        },
+        {
+          "alignment": "center",
+          "wrap": false
+        },
+        {
+          "alignment": "center",
+          "wrap": false
+        }
+      ]
+    },
+    "note": {
+      "name": "Spotify (Note)",
+      "template": [
+        "{{spotify.title}}",
+        "{{spotify.artist}}",
+        "{{spotify.state_tile}} {{spotify.time_line}}"
+      ],
+      "line_metadata": [
+        {
+          "alignment": "left",
+          "wrap": false
+        },
+        {
+          "alignment": "left",
+          "wrap": false
+        },
+        {
+          "alignment": "left",
+          "wrap": false
+        }
+      ]
+    }
+  }
+}
